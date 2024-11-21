@@ -16,11 +16,13 @@ set(PROJECT_SOURCES
         src/main.cpp
         src/MainWindow.h
         src/MainWindow.cpp
+        src/MainWindow.ui
         src/views/CalendarView.h
         src/views/CalendarView.cpp
         src/views/TreeView.h
         src/views/TreeView.cpp
 )
+include_directories(${CMAKE_SOURCE_DIR}/src)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(qt-test

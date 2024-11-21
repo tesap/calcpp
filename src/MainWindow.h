@@ -4,6 +4,10 @@
 
 #include <QMainWindow>
 
+namespace Ui {
+    class MainWindow;
+}
+
 class TreeViewWidget;
 // class ListViewWidget;
 class CalendarView;
@@ -16,6 +20,8 @@ public:
     ~MainWindow() override;
 
 private:
+    Ui::MainWindow *ui;
+
     TreeViewWidget *treeView;
     // ListViewWidget *listView;
     CalendarView*calendarView;

@@ -1,14 +1,13 @@
 // src/treeviewwidget.cpp
 #include "TreeView.h"
-#include <QTreeView>
-#include <QVBoxLayout>
+#include <QMouseEvent>
+#include <QDebug>
 
-TreeViewWidget::TreeViewWidget(QWidget *parent) : QWidget(parent) {
-    QVBoxLayout *layout = new QVBoxLayout(this);
-
-    treeView = new QTreeView(this);
-    layout->addWidget(treeView);
-
-    setLayout(layout);
+TreeViewWidget::TreeViewWidget(QWidget *parent) : QTreeView(parent) {
+    setSelectionMode(QAbstractItemView::SingleSelection); // Example customization
 }
 
+void TreeViewWidget::mousePressEvent(QMouseEvent *event) {
+    qDebug() << "Mouse pressed on TreeView!";
+    QTreeView::mousePressEvent(event); // Call base class behavior
+}
