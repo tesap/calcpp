@@ -41,11 +41,15 @@ CalendarView::CalendarView(QWidget *parent)
     , m_eventXPadding(50)
     , m_calendarWidth(m_eventWidth + m_eventXPadding + 25)
     , m_calendarHeight(m_hourHeight * (m_endHour - m_startHour) + 25)
+    , minDeltaSegmentSize(0.5)
+    , m_edgeEventMargin(12)
 {
 
     setMinimumSize(
         m_calendarWidth,
         m_calendarHeight);
+    setMouseTracking(true);
+
     m_tasks.append({"QStr", 10, 2.5, QColor::fromHsv(200, 255, 200)});
 }
 
@@ -91,52 +95,120 @@ void CalendarView::paintEvent(QPaintEvent *event) {
 }
 
 void CalendarView::mousePressEvent(QMouseEvent *event) {
-    m_isDragging = false;
+    m_dragMode = None;
     m_draggedTask = nullptr;
 
-    for (Task &task : m_tasks) {
-        QRect taskRect = getTaskRect(task);
-        if (taskRect.contains(event->pos())) {
-            m_isDragging = true;
-            m_draggedTask = &task;
+    std::any_of(m_tasks.begin(), m_tasks.end(), [this, event](Task& t){
+        if (isCursorCoversBorder(t, event->pos())) {
+            m_dragMode = ResizeBottom;
+            m_draggedTask = &t;
             m_lastMousePos = event->pos();
-            qDebug() << "Started dragging task:" << task.name;
-            return;
+            qDebug() << "Started resizing:" << t.name;
+            return true;
+        } else if (isCursorCoversBody(t, event->pos())) {
+            m_dragMode = Move;
+            m_draggedTask = &t;
+            m_lastMousePos = event->pos();
+            qDebug() << "Started dragging:" << t.name;
+            return true;
         }
-    }
+        return false;
+    });
 }
 
 void CalendarView::mouseMoveEvent(QMouseEvent *event) {
-    if (!m_isDragging || !m_draggedTask) {
-        return;
-    }
+    adjustCursor(event);
 
-    const float minDeltaSegmentSize = 0.5;
     // TODO Some lost delta on fast movement?
     int deltaY = event->pos().y() - m_lastMousePos.y();
     int deltaSegments = deltaY / (m_hourHeight * minDeltaSegmentSize);
     float deltaHours = deltaSegments * minDeltaSegmentSize;
 
-    qDebug() << "Delta: " << deltaY << ", " << deltaSegments << ", " << deltaHours;
+    switch (m_dragMode) {
+    case (Move): {
+        qDebug() << "Delta: " << deltaY << ", " << deltaSegments << ", " << deltaHours;
 
-    float newStartHour = m_draggedTask->startHour + deltaHours;
-    if (deltaHours != 0 && taskDrawable(newStartHour, m_draggedTask->duration)) {
-        m_draggedTask->startHour = newStartHour;
-        m_lastMousePos = event->pos();
-        update();
+        float newStartHour = m_draggedTask->startHour + deltaHours;
+        if (deltaHours != 0 && taskDrawable(newStartHour, m_draggedTask->duration)) {
+            m_draggedTask->startHour = newStartHour;
+            m_lastMousePos = event->pos();
+            update();
+        }
+        break;
     }
+    case (ResizeBottom): {
+        float newDuration = m_draggedTask->duration + deltaHours;
+        if (deltaHours != 0
+            && newDuration >= minDeltaSegmentSize
+            && taskDrawable(m_draggedTask->startHour, newDuration)
+        ) {
+            m_draggedTask->duration = newDuration;
+            m_lastMousePos = event->pos();
+            update();
+        }
+        break;
+    }
+    default: {}
+    };
 }
 
 void CalendarView::mouseReleaseEvent(QMouseEvent *event) {
-    if (m_isDragging && m_draggedTask) {
-        qDebug() << "Finished dragging task:" << m_draggedTask->name;
-        m_isDragging = false;
-        m_draggedTask = nullptr;
-    }
+    m_dragMode = None;
+    m_draggedTask = nullptr;
+
+    adjustCursor(event);
 }
 
 QSize CalendarView::sizeHint() const {
     return QSize(m_calendarWidth, m_calendarHeight);
+}
+
+void CalendarView::adjustCursor(QMouseEvent *event) {
+    switch (m_dragMode) {
+    case (Move): {
+        setCursor(Qt::ClosedHandCursor);
+        return;
+    }
+    case (ResizeBottom): {
+        setCursor(Qt::SizeVerCursor);
+        return;
+    }
+    case (None): {
+        auto isCovering = std::any_of(m_tasks.begin(), m_tasks.end(), [this, event](const Task& t){
+            if (isCursorCoversBorder(t, event->pos())) {
+                setCursor(Qt::SizeVerCursor);
+                return true;
+            } else if (isCursorCoversBody(t, event->pos())) {
+                setCursor(Qt::OpenHandCursor);
+                return true;
+            }
+            return false;
+        });
+
+        if (!isCovering) {
+            setCursor(Qt::ArrowCursor);
+        }
+        break;
+    }
+    default: {
+        qDebug() << "Unknown drag state?: " << m_dragMode;
+    }
+    }
+}
+
+bool CalendarView::isCursorCoversBorder(const Task& t, const QPoint& pos) {
+    QRect taskRect = getTaskRect(t);
+
+    QRect topEdge = taskRect.adjusted(0, 0, 0, m_edgeEventMargin - taskRect.height());
+    QRect bottomEdge = taskRect.adjusted(0, taskRect.height() - m_edgeEventMargin / 2, 0, m_edgeEventMargin / 2);
+
+    // return topEdge.contains(pos) || bottomEdge.contains(pos);
+    return bottomEdge.contains(pos);
+}
+
+bool CalendarView::isCursorCoversBody(const Task& t, const QPoint& pos) {
+    QRect taskRect = getTaskRect(t);
+    return taskRect.contains(pos);
 }
 
 bool CalendarView::taskDrawable(float startHour, float duration) const {

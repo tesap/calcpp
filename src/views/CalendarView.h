@@ -34,9 +34,16 @@ private:
     bool taskDrawable(float startHour, float duration) const;
     QRect getTaskRect(const Task &task) const;
 
-    bool m_isDragging{false};
+    void adjustCursor(QMouseEvent *event);
+    bool isCursorCoversBorder(const Task& t, const QPoint& pos);
+    bool isCursorCoversBody(const Task& t, const QPoint& pos);
+
     Task* m_draggedTask{nullptr};
     QPoint m_lastMousePos;
+
+    enum DragMode { None, Move, ResizeBottom };
+    DragMode m_dragMode{None};
+
 
     QList<Task> m_tasks;
 
@@ -53,6 +60,9 @@ private:
 
     int m_calendarWidth;
     int m_calendarHeight;
+
+    float minDeltaSegmentSize;
+    int m_edgeEventMargin;
 };
 
 #endif // CALENDARVIEW_H
