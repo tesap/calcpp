@@ -1,7 +1,7 @@
 #ifndef ALGORITHMS_H
 #define ALGORITHMS_H
 
-#include "tasks.h"
+#include "calendar/tasks.h"
 
 #include <QDebug>
 
@@ -25,8 +25,8 @@ using ScanlineResult = QList<QList<float>>;
  *  t.start
  *  t.duration
  */
-template <template <typename T> class Container>
-ScanlineData elementsToScanlineData(Container<CalendarRect>& container);
+template <template <typename T> class Container, typename T>
+ScanlineData rectsToScanlineInput(Container<T>& container);
 
 // Get chunks of chained items
 ScanlineResult scanlineAlgo(const ScanlineData& data);

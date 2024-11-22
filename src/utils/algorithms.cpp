@@ -3,11 +3,17 @@
 namespace Algorithms {
 
 ScanlineResult scanlineAlgo(const ScanlineData& data) {
+    // TODO Optimize algorithm to concisely draw chain of events as a snake instead of a ladder
     ScanlineResult result(data.size());
+
+    QList<QList<int>> res2(data.size());
+
     int curChunk = 0;
     int curOpenAtChunk = 0;
 
     for (int i = 0; i < data.size(); i++) {
+        res2[i] = {0, 0};
+
         if (data[i].isStart) {
             curOpenAtChunk++;
             result[curChunk].append(data[i].relatedIndex);

@@ -2,8 +2,8 @@
 
 namespace Algorithms {
 
-template <template <typename T> class Container>
-ScanlineData elementsToScanlineData(Container<CalendarRect>& container) {
+template <template <typename T> class Container, typename T>
+ScanlineData rectsToScanlineInput(Container<T>& container) {
     ScanlineData result;
 
     for (int i = 0; i < container.size(); i++) {

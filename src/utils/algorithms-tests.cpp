@@ -54,7 +54,7 @@ void testConversion() {
         {11, 4}, // 11 - 15
         {20, 1}, // 20 - 21
     };
-    auto data = Algorithms::elementsToScanlineData(list);
+    auto data = Algorithms::rectsToScanlineInput(list);
     Algorithms::printScanlineData(data);
 
     auto result = Algorithms::scanlineAlgo(data);

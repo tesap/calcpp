@@ -19,13 +19,15 @@ set(PROJECT_SOURCES
         src/MainWindow.h
         src/MainWindow.cpp
         src/MainWindow.ui
-        src/views/CalendarView.h
-        src/views/CalendarView.cpp
         src/views/TreeView.h
         src/views/TreeView.cpp
         src/utils/algorithms.h
-        src/utils/tasks.h
-        src/utils/tasks.cpp
+        src/utils/algorithms.cpp
+        src/utils/algorithms.tpp
+        src/calendar/CalendarView.h
+        src/calendar/CalendarView.cpp
+        src/calendar/tasks.h
+        src/calendar/tasks.cpp
 )
 include_directories(${CMAKE_SOURCE_DIR}/src)
 
@@ -34,8 +36,8 @@ add_executable(algo-tests
         src/utils/algorithms.cpp
         src/utils/algorithms.tpp
         src/utils/algorithms-tests.cpp
-        src/utils/tasks.h
-        src/utils/tasks.cpp
+        src/calendar/tasks.h
+        src/calendar/tasks.cpp
 )
 target_link_libraries(algo-tests PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 

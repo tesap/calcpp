@@ -1,18 +1,13 @@
 #ifndef CALENDARVIEW_H
 #define CALENDARVIEW_H
 
+#include "tasks.h"
+
 #include <QWidget>
 #include <QList>
 #include <QRect>
 #include <QString>
 
-
-struct Task {
-    QString name;
-    float startHour;
-    float duration;
-    QColor color;
-};
 
 class CalendarView : public QWidget {
     Q_OBJECT
@@ -21,6 +16,7 @@ public:
 
     explicit CalendarView(QWidget *parent = nullptr);
     bool addTask(Task task);
+    // bool addZone(Task task);
     void clearTasks();
 
 protected:
@@ -30,22 +26,25 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
 
-private:
-    bool taskDrawable(float startHour, float duration) const;
-    QRect getTaskRect(const Task &task) const;
-
+private:    
     void adjustCursor(QMouseEvent *event);
-    bool isCursorCoversBorder(const Task& t, const QPoint& pos);
-    bool isCursorCoversBody(const Task& t, const QPoint& pos);
+    // void adjustTasksRects();
+    void updateTasksRects();
+    void updateDraggingTaskRect();
 
-    Task* m_draggedTask{nullptr};
+    bool taskDrawable(float startHour, float duration) const;
+    QRect calcDrawRect(const CalendarRect &cr, int clusterIndex = 0, int clusterSize = 1) const;
+    bool isIntersectBorder(const CalendarRect &cr, const QPoint& pos) const;
+    bool isIntersectBody(const CalendarRect &cr, const QPoint& pos) const;
+
     QPoint m_lastMousePos;
 
     enum DragMode { None, Move, ResizeBottom };
     DragMode m_dragMode{None};
-
+    CalendarRect* m_draggedRect{nullptr};
 
     QList<Task> m_tasks;
+    QList<Zone> m_zones;
 
     QColor m_bgColor;
     int m_startHour;
@@ -56,7 +55,8 @@ private:
     int m_hourYPadding;
 
     int m_eventWidth;
-    int m_eventXPadding;
+    int m_eventLeftPadding;
+    int m_eventRightPadding;
 
     int m_calendarWidth;
     int m_calendarHeight;
