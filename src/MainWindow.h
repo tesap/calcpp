@@ -19,12 +19,15 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
 
+private slots:
+    void on_pushButton_clicked();
+
 private:
     Ui::MainWindow *ui;
 
     TreeViewWidget *treeView;
     // ListViewWidget *listView;
-    CalendarView*calendarView;
+    CalendarView* calendarView;
 };
 
 #endif // MAINWINDOW_H

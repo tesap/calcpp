@@ -6,31 +6,53 @@
 #include <QRect>
 #include <QString>
 
-// Task structure to represent a task in the calendar
+
 struct Task {
     QString name;
-    int startHour;  // Start time (hour)
-    int duration;   // Duration in hours
-    QColor color;   // Priority-based color
+    float startHour;
+    float duration;
+    QColor color;
 };
 
 class CalendarView : public QWidget {
     Q_OBJECT
 
 public:
+
     explicit CalendarView(QWidget *parent = nullptr);
-    void addTask(const Task &task); // Add a new task
-    void clearTasks();             // Clear all tasks
+    bool addTask(Task task);
+    void clearTasks();
 
 protected:
-    void paintEvent(QPaintEvent *event) override;
+    virtual QSize sizeHint() const override;
+    virtual void paintEvent(QPaintEvent *event) override;
     void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
 
 private:
-    QList<Task> tasks; // List of tasks
-    int hourHeight;    // Height of one hour slot
-    int calendarWidth; // Width of the calendar
-    QRect getTaskRect(const Task &task) const; // Get rectangle for a task
+    bool taskDrawable(float startHour, float duration) const;
+    QRect getTaskRect(const Task &task) const;
+
+    bool m_isDragging{false};
+    Task* m_draggedTask{nullptr};
+    QPoint m_lastMousePos;
+
+    QList<Task> m_tasks;
+
+    QColor m_bgColor;
+    int m_startHour;
+    int m_endHour;
+
+    int m_hourHeight;
+    int m_hourXPadding;
+    int m_hourYPadding;
+
+    int m_eventWidth;
+    int m_eventXPadding;
+
+    int m_calendarWidth;
+    int m_calendarHeight;
 };
 
 #endif // CALENDARVIEW_H

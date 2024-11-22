@@ -11,7 +11,6 @@ public:
     explicit TreeViewWidget(QWidget *parent = nullptr);
 
 protected:
-    // Add custom behavior or event handlers here if needed
     void mousePressEvent(QMouseEvent *event) override;
 };
 

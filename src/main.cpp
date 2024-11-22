@@ -5,7 +5,6 @@
 #include <QMainWindow>
 #include <QVBoxLayout>
 #include <QPushButton>
-#include <QRandomGenerator> // Add this include
 
 
 int main(int argc, char *argv[]) {
