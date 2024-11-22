@@ -3,11 +3,10 @@
 
 #include <QApplication>
 #include <QMainWindow>
-#include <QVBoxLayout>
 #include <QPushButton>
+#include <QVBoxLayout>
 
-
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     QApplication app(argc, argv);
 
     MainWindow mainWindow;
@@ -15,4 +14,3 @@ int main(int argc, char *argv[]) {
 
     return app.exec();
 }
-

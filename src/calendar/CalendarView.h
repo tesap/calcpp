@@ -3,39 +3,37 @@
 
 #include "tasks.h"
 
-#include <QWidget>
 #include <QList>
 #include <QRect>
 #include <QString>
-
+#include <QWidget>
 
 class CalendarView : public QWidget {
     Q_OBJECT
 
 public:
-
-    explicit CalendarView(QWidget *parent = nullptr);
+    explicit CalendarView(QWidget* parent = nullptr);
     bool addTask(Task task);
     // bool addZone(Task task);
     void clearTasks();
 
 protected:
     virtual QSize sizeHint() const override;
-    virtual void paintEvent(QPaintEvent *event) override;
-    void mousePressEvent(QMouseEvent *event) override;
-    void mouseMoveEvent(QMouseEvent *event) override;
-    void mouseReleaseEvent(QMouseEvent *event) override;
+    virtual void paintEvent(QPaintEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseMoveEvent(QMouseEvent* event) override;
+    void mouseReleaseEvent(QMouseEvent* event) override;
 
-private:    
-    void adjustCursor(QMouseEvent *event);
+private:
+    void adjustCursor(QMouseEvent* event);
     // void adjustTasksRects();
     void updateTasksRects();
     void updateDraggingTaskRect();
 
     bool taskDrawable(float startHour, float duration) const;
-    QRect calcDrawRect(const CalendarRect &cr, int clusterIndex = 0, int clusterSize = 1) const;
-    bool isIntersectBorder(const CalendarRect &cr, const QPoint& pos) const;
-    bool isIntersectBody(const CalendarRect &cr, const QPoint& pos) const;
+    QRect calcDrawRect(const CalendarRect& cr, int clusterIndex = 0, int clusterSize = 1) const;
+    bool isIntersectBorder(const CalendarRect& cr, const QPoint& pos) const;
+    bool isIntersectBody(const CalendarRect& cr, const QPoint& pos) const;
 
     QPoint m_lastMousePos;
 
@@ -66,4 +64,3 @@ private:
 };
 
 #endif // CALENDARVIEW_H
-

@@ -8,7 +8,7 @@ int findFirst(QList<T>& l, T elem) {
     return (it != l.end()) ? (it - l.begin()) : (-1);
 }
 
-}
+} // namespace
 
 void testFind() {
     QList<int> l{1, 2, 3, 4, 5, 6, 7};
@@ -27,7 +27,7 @@ SlResult scanlineAlgo(const SlEvents& data) {
     QList<QList<int>> result(data.size() / 2);
 
     QList<int> columns(data.size(), -1); // Keep track of currently taken columns
-    QList<int> curChunk; // Keep track of currently started slots;
+    QList<int> curChunk;                 // Keep track of currently started slots;
 
     for (int i = 0; i < data.size(); i++) {
         int curSlot = data[i].id;
@@ -42,7 +42,7 @@ SlResult scanlineAlgo(const SlEvents& data) {
 
             // Increase count for each currently open slots
             curChunk.append(curSlot);
-            std::for_each(curChunk.begin(), curChunk.end(), [&result, &curChunk](int slotId){
+            std::for_each(curChunk.begin(), curChunk.end(), [&result, &curChunk](int slotId) {
                 result[slotId][1] = curChunk.size();
             });
         } else {
@@ -69,4 +69,4 @@ void printSlResult(const SlResult& res) {
     }
 }
 
-}
+} // namespace Algorithms

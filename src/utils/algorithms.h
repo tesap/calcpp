@@ -12,9 +12,7 @@ struct ScanlineEvent {
     bool isStart;
     int id;
 
-    bool operator < (const ScanlineEvent& i) const {
-        return (x < i.x);
-    }
+    bool operator<(const ScanlineEvent& i) const { return (x < i.x); }
 };
 
 using SlEvents = QList<ScanlineEvent>;
@@ -34,7 +32,7 @@ SlResult scanlineAlgo(const SlEvents& data);
 void printSlEvents(const SlEvents& data);
 void printSlResult(const SlResult& res);
 
-}
+} // namespace Algorithms
 
 #include "algorithms.tpp"
 

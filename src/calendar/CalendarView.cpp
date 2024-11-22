@@ -1,10 +1,10 @@
 #include "CalendarView.h"
 #include "utils/algorithms.h"
 
-#include <QPainter>
-#include <QMouseEvent>
-#include <QString>
 #include <QMenu>
+#include <QMouseEvent>
+#include <QPainter>
+#include <QString>
 
 namespace {
 
@@ -30,9 +30,9 @@ void drawDashedLine(QPainter& painter, const QColor& color, const QLine& line) {
     painter.drawLine(line);
 }
 
-}
+} // namespace
 
-CalendarView::CalendarView(QWidget *parent)
+CalendarView::CalendarView(QWidget* parent)
     : QWidget(parent)
     , m_bgColor(WHITE)
     , m_startHour(5)
@@ -46,12 +46,8 @@ CalendarView::CalendarView(QWidget *parent)
     , m_calendarWidth(m_eventWidth + m_eventLeftPadding + m_eventRightPadding)
     , m_calendarHeight(m_hourHeight * (m_endHour - m_startHour) + 25)
     , minDeltaSegmentSize(0.5)
-    , m_edgeEventMargin(12)
-{
-
-    setMinimumSize(
-        m_calendarWidth,
-        m_calendarHeight);
+    , m_edgeEventMargin(12) {
+    setMinimumSize(m_calendarWidth, m_calendarHeight);
     setMouseTracking(true);
 
     addTask({10, 2.5, "QStr"});
@@ -83,8 +79,7 @@ void CalendarView::updateTasksRects() {
     update(); // Repainting full widget
 }
 
-void CalendarView::updateDraggingTaskRect()
-{
+void CalendarView::updateDraggingTaskRect() {
     // Update task's rect indefferently to other tasks, as it
     // is being in process of dragging
     m_draggedRect->setRect(calcDrawRect(*m_draggedRect));
@@ -108,8 +103,7 @@ void CalendarView::clearTasks() {
     update();
 }
 
-void CalendarView::paintEvent(QPaintEvent *event) {
-
+void CalendarView::paintEvent(QPaintEvent* event) {
     qDebug() << "RECT: " << event->rect();
 
     QPainter painter(this);
@@ -125,7 +119,7 @@ void CalendarView::paintEvent(QPaintEvent *event) {
         drawTextBelow(painter, text, BLACK, {m_hourXPadding, y + m_hourYPadding});
     }
 
-    for (Task& t: m_tasks) {
+    for (Task& t : m_tasks) {
         t.draw(painter);
     }
 
@@ -135,17 +129,17 @@ void CalendarView::paintEvent(QPaintEvent *event) {
     }
 }
 
-void CalendarView::mousePressEvent(QMouseEvent *event) {
+void CalendarView::mousePressEvent(QMouseEvent* event) {
     m_dragMode = None;
     m_draggedRect = nullptr;
 
     switch (event->button()) {
     case (Qt::RightButton): {
-        std::any_of(m_tasks.begin(), m_tasks.end(), [event, this](const Task& t){
+        std::any_of(m_tasks.begin(), m_tasks.end(), [event, this](const Task& t) {
             if (isIntersectBody(t, event->pos())) {
                 QMenu menu(this);
-                menu.addAction("Edit Task", []() { }); // editTask(t); });
-                menu.addAction("Delete Task", []() { }); //  { deleteTask(t); });
+                menu.addAction("Edit Task", []() {});   // editTask(t); });
+                menu.addAction("Delete Task", []() {}); //  { deleteTask(t); });
                 menu.exec(event->globalPos());
                 return true;
             }
@@ -154,7 +148,7 @@ void CalendarView::mousePressEvent(QMouseEvent *event) {
         break;
     }
     case (Qt::LeftButton): {
-        std::any_of(m_tasks.begin(), m_tasks.end(), [this, event](Task& t){
+        std::any_of(m_tasks.begin(), m_tasks.end(), [this, event](Task& t) {
             if (isIntersectBorder(t, event->pos())) {
                 m_dragMode = ResizeBottom;
                 m_draggedRect = &t;
@@ -171,12 +165,12 @@ void CalendarView::mousePressEvent(QMouseEvent *event) {
             return false;
         });
     }
-    default: {}
-
+    default: {
+    }
     }
 }
 
-void CalendarView::mouseMoveEvent(QMouseEvent *event) {
+void CalendarView::mouseMoveEvent(QMouseEvent* event) {
     adjustCursor(event);
 
     // TODO Some lost delta on fast movement?
@@ -198,21 +192,24 @@ void CalendarView::mouseMoveEvent(QMouseEvent *event) {
     }
     case (ResizeBottom): {
         float newDuration = m_draggedRect->duration + deltaHours;
+        // clang-format off
         if (deltaHours != 0
             && newDuration >= minDeltaSegmentSize
             && taskDrawable(m_draggedRect->start, newDuration)
         ) {
+            // clang-format on
             m_draggedRect->duration = newDuration;
             m_lastMousePos = event->pos();
             updateDraggingTaskRect();
         }
         break;
     }
-    default: {}
+    default: {
+    }
     };
 }
 
-void CalendarView::mouseReleaseEvent(QMouseEvent *event) {
+void CalendarView::mouseReleaseEvent(QMouseEvent* event) {
     // Adjust tasks
     // TODO Adjust partially (needed?)
     // TODO cast works?
@@ -230,7 +227,7 @@ QSize CalendarView::sizeHint() const {
     return QSize(m_calendarWidth, m_calendarHeight);
 }
 
-void CalendarView::adjustCursor(QMouseEvent *event) {
+void CalendarView::adjustCursor(QMouseEvent* event) {
     switch (m_dragMode) {
     case (Move): {
         setCursor(Qt::ClosedHandCursor);
@@ -242,7 +239,7 @@ void CalendarView::adjustCursor(QMouseEvent *event) {
     }
     case (None): {
         // TODO Sort by max startHour
-        auto isCovering = std::any_of(m_tasks.begin(), m_tasks.end(), [this, event](const Task& t){
+        auto isCovering = std::any_of(m_tasks.begin(), m_tasks.end(), [this, event](const Task& t) {
             if (isIntersectBorder(t, event->pos())) {
                 setCursor(Qt::SizeVerCursor);
                 return true;
@@ -264,7 +261,7 @@ void CalendarView::adjustCursor(QMouseEvent *event) {
     }
 }
 
-bool CalendarView::isIntersectBorder(const CalendarRect &cr, const QPoint& pos) const {
+bool CalendarView::isIntersectBorder(const CalendarRect& cr, const QPoint& pos) const {
     QRect rect = cr.getRect();
 
     QRect topEdge = rect.adjusted(0, 0, 0, m_edgeEventMargin - rect.height());
@@ -274,7 +271,7 @@ bool CalendarView::isIntersectBorder(const CalendarRect &cr, const QPoint& pos) 
     return bottomEdge.contains(pos);
 }
 
-bool CalendarView::isIntersectBody(const CalendarRect &cr, const QPoint& pos) const {
+bool CalendarView::isIntersectBody(const CalendarRect& cr, const QPoint& pos) const {
     return cr.getRect().contains(pos);
 }
 
@@ -282,7 +279,7 @@ bool CalendarView::taskDrawable(float startHour, float duration) const {
     return startHour >= m_startHour && (startHour + duration) <= m_endHour;
 }
 
-QRect CalendarView::calcDrawRect(const CalendarRect &cr, int clusterIndex, int clusterSize) const {
+QRect CalendarView::calcDrawRect(const CalendarRect& cr, int clusterIndex, int clusterSize) const {
     float hourRelative = cr.start - m_startHour;
 
     int width = m_eventWidth / clusterSize;
@@ -292,4 +289,3 @@ QRect CalendarView::calcDrawRect(const CalendarRect &cr, int clusterIndex, int c
     int y = hourRelative * m_hourHeight;
     return QRect(x, y, width, height);
 }
-

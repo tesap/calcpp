@@ -15,4 +15,4 @@ SlEvents calRectsToSlEvents(Container<T>& container) {
     return result;
 }
 
-}
+} // namespace Algorithms
