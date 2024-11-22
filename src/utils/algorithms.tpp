@@ -3,8 +3,8 @@
 namespace Algorithms {
 
 template <template <typename T> class Container, typename T>
-ScanlineData rectsToScanlineInput(Container<T>& container) {
-    ScanlineData result;
+SlEvents calRectsToSlEvents(Container<T>& container) {
+    SlEvents result;
 
     for (int i = 0; i < container.size(); i++) {
         result.append({container[i].start, true, i});

@@ -7,18 +7,18 @@
 
 namespace Algorithms {
 
-struct ScanlineItem {
+struct ScanlineEvent {
     float x;
     bool isStart;
-    float relatedIndex;
+    int id;
 
-    bool operator < (const ScanlineItem& i) const {
+    bool operator < (const ScanlineEvent& i) const {
         return (x < i.x);
     }
 };
 
-using ScanlineData = QList<ScanlineItem>;
-using ScanlineResult = QList<QList<float>>;
+using SlEvents = QList<ScanlineEvent>;
+using SlResult = QList<QList<int>>;
 
 /*
  * Requirements on T:
@@ -26,13 +26,13 @@ using ScanlineResult = QList<QList<float>>;
  *  t.duration
  */
 template <template <typename T> class Container, typename T>
-ScanlineData rectsToScanlineInput(Container<T>& container);
+SlEvents calRectsToSlEvents(Container<T>& container);
 
 // Get chunks of chained items
-ScanlineResult scanlineAlgo(const ScanlineData& data);
+SlResult scanlineAlgo(const SlEvents& data);
 
-void printScanlineData(const ScanlineData& data);
-void printScanlineResult(const ScanlineResult& res);
+void printSlEvents(const SlEvents& data);
+void printSlResult(const SlResult& res);
 
 }
 

@@ -62,15 +62,22 @@ void CalendarView::updateTasksRects() {
     // 2. Iterate over result, update each m_rect
     // 3. update()
 
-    auto slInput = Algorithms::rectsToScanlineInput(m_tasks);
+    auto slInput = Algorithms::calRectsToSlEvents(m_tasks);
     auto slResult = Algorithms::scanlineAlgo(slInput);
 
-    for (auto &chunk: slResult) {
-        for (int i = 0; i < chunk.size(); i++) {
-            auto taskIndex = chunk[i];
-            Task& t = m_tasks[taskIndex];
-            t.setRect(calcDrawRect(t, i, chunk.size()));
-        }
+    for (int i = 0; i < slResult.size(); i++) {
+        // for (int i = 0; i < chunk.size(); i++) {
+        //     auto taskIndex = chunk[i];
+        //     auto chunkSize = chunk.size();
+        //     Task& t = m_tasks[taskIndex];
+        //     t.setRect(calcDrawRect(t, i, chunkSize));
+        // }
+        auto chunk = slResult[i];
+        auto taskPos = chunk[0];
+        auto chunkSize = chunk[1];
+
+        Task& t = m_tasks[i];
+        t.setRect(calcDrawRect(t, taskPos, chunkSize));
     }
 
     update(); // Repainting full widget

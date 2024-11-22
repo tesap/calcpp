@@ -5,9 +5,11 @@
 // template <template <typename T> class Container>
 // void elementsToScanlineData(Container<CalendarRect> container);
 
+void testFind();
 
-int testSimple() {
-    Algorithms::ScanlineData data = {
+
+void testSimple() {
+    Algorithms::SlEvents data = {
                          {0, true, 0},
                          {1, false, 0},
 
@@ -33,14 +35,20 @@ int testSimple() {
 
                          };
 
-    printScanlineData(data);
+    printSlEvents(data);
     auto res = scanlineAlgo(data);
 
-    Algorithms::printScanlineResult(res);
+    Algorithms::printSlResult(res);
 
-    assert(res.size() == 5);
-
-    return 0;
+    // assert(res.size() == 5);
+    assert((res[0] == QList{0, 1}));
+    assert((res[1] == QList{0, 1}));
+    assert((res[2] == QList{0, 1}));
+    assert((res[3] == QList{0, 2}));
+    assert((res[4] == QList{1, 2}));
+    assert((res[5] == QList{0, 2}));
+    assert((res[6] == QList{1, 2}));
+    assert((res[7] == QList{0, 2}));
 }
 
 void testConversion() {
@@ -54,13 +62,20 @@ void testConversion() {
         {11, 4}, // 11 - 15
         {20, 1}, // 20 - 21
     };
-    auto data = Algorithms::rectsToScanlineInput(list);
-    Algorithms::printScanlineData(data);
+    auto data = Algorithms::calRectsToSlEvents(list);
+    Algorithms::printSlEvents(data);
 
-    auto result = Algorithms::scanlineAlgo(data);
-    Algorithms::printScanlineResult(result);
+    auto res = Algorithms::scanlineAlgo(data);
+    Algorithms::printSlResult(res);
 
-    assert(result.size() == 4);
+    assert((res[0] == QList{0, 1}));
+    assert((res[1] == QList{0, 1}));
+    assert((res[2] == QList{0, 2}));
+    assert((res[3] == QList{1, 2}));
+    assert((res[4] == QList{1, 2}));
+    assert((res[5] == QList{1, 2}));
+    assert((res[6] == QList{0, 2}));
+    assert((res[7] == QList{0, 1}));
 }
 
 int main() {
@@ -68,6 +83,8 @@ int main() {
     testSimple();
     qDebug() << "===================";
     testConversion();
+    qDebug() << "===================";
+    testFind();
     qDebug() << "===================";
 }
 
