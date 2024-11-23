@@ -135,16 +135,26 @@ void CalendarView::mousePressEvent(QMouseEvent* event) {
 
     switch (event->button()) {
     case (Qt::RightButton): {
-        std::any_of(m_tasks.begin(), m_tasks.end(), [event, this](const Task& t) {
+        QMenu menu(this);
+
+        bool clickedRect = std::any_of(m_tasks.begin(), m_tasks.end(), [&event, &menu, this](const Task& t) {
             if (isIntersectBody(t, event->pos())) {
-                QMenu menu(this);
                 menu.addAction("Edit Task", []() {});   // editTask(t); });
                 menu.addAction("Delete Task", []() {}); //  { deleteTask(t); });
-                menu.exec(event->globalPos());
                 return true;
             }
             return false;
         });
+
+        if (!clickedRect) {
+            menu.addAction("Add Task", [this, &event]() {
+                float startHour = m_startHour + static_cast<float>(event->pos().y()) / m_hourHeight;
+                Task newTask{startHour, 1.0, "New Task"};
+                addTask(newTask);
+            });
+        }
+
+        menu.exec(event->globalPos());
         break;
     }
     case (Qt::LeftButton): {
