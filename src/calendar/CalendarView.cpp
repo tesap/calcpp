@@ -70,10 +70,11 @@ void CalendarView::updateTasksRects() {
         // }
         auto chunk = slResult[i];
         auto taskPos = chunk[0];
-        auto chunkSize = chunk[1];
+        auto taskWidth = chunk[1];
+        auto chunkSize = chunk[2];
 
         Task& t = m_tasks[i];
-        t.setRect(calcDrawRect(t, taskPos, chunkSize));
+        t.setRect(calcDrawRect(t, taskPos, taskWidth, chunkSize));
     }
 
     update(); // Repainting full widget
@@ -82,7 +83,7 @@ void CalendarView::updateTasksRects() {
 void CalendarView::updateDraggingTaskRect() {
     // Update task's rect indefferently to other tasks, as it
     // is being in process of dragging
-    m_draggedRect->setRect(calcDrawRect(*m_draggedRect));
+    m_draggedRect->setRect(calcDrawRect(*m_draggedRect, 0, 1, 1));
     update();
 }
 
@@ -104,8 +105,6 @@ void CalendarView::clearTasks() {
 }
 
 void CalendarView::paintEvent(QPaintEvent* event) {
-    qDebug() << "RECT: " << event->rect();
-
     QPainter painter(this);
     painter.fillRect(rect(), m_bgColor);
 
@@ -190,8 +189,6 @@ void CalendarView::mouseMoveEvent(QMouseEvent* event) {
 
     switch (m_dragMode) {
     case (Move): {
-        qDebug() << "Delta: " << deltaY << ", " << deltaSegments << ", " << deltaHours;
-
         float newStartHour = m_draggedRect->start + deltaHours;
         if (deltaHours != 0 && taskDrawable(newStartHour, m_draggedRect->duration)) {
             m_draggedRect->start = newStartHour;
@@ -289,13 +286,15 @@ bool CalendarView::taskDrawable(float startHour, float duration) const {
     return startHour >= m_startHour && (startHour + duration) <= m_endHour;
 }
 
-QRect CalendarView::calcDrawRect(const CalendarRect& cr, int clusterIndex, int clusterSize) const {
+QRect CalendarView::calcDrawRect(const CalendarRect& cr, int clusterIndex, int widthInCluster, int clusterSize) const {
     float hourRelative = cr.start - m_startHour;
 
-    int width = m_eventWidth / clusterSize;
+    int colWidth = m_eventWidth / clusterSize;
+
+    int width = widthInCluster * colWidth;
     int height = cr.duration * m_hourHeight;
 
-    int x = m_eventLeftPadding + clusterIndex * width;
+    int x = m_eventLeftPadding + clusterIndex * colWidth;
     int y = hourRelative * m_hourHeight;
     return QRect(x, y, width, height);
 }

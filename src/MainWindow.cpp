@@ -19,7 +19,7 @@ MainWindow::MainWindow(QWidget* parent)
 }
 
 void MainWindow::on_pushButton_clicked() {
-    calendarView->addTask({18, 0.33, "Test Task"});
+    calendarView->addTask({10, 1, "ABC"});
 }
 
 MainWindow::~MainWindow() {

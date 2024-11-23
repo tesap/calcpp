@@ -31,7 +31,7 @@ private:
     void updateDraggingTaskRect();
 
     bool taskDrawable(float startHour, float duration) const;
-    QRect calcDrawRect(const CalendarRect& cr, int clusterIndex = 0, int clusterSize = 1) const;
+    QRect calcDrawRect(const CalendarRect& cr, int clusterIndex, int widthInCluster, int clusterSize) const;
     bool isIntersectBorder(const CalendarRect& cr, const QPoint& pos) const;
     bool isIntersectBody(const CalendarRect& cr, const QPoint& pos) const;
 

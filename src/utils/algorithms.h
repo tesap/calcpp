@@ -11,8 +11,20 @@ struct ScanlineEvent {
     float x;
     bool isStart;
     int id;
+    float length;
 
-    bool operator<(const ScanlineEvent& i) const { return (x < i.x); }
+    bool operator<(const ScanlineEvent& i) const {
+        if (x == i.x) {
+            if (isStart == i.isStart) {
+                // Longer first
+                return length > i.length;
+            }
+
+            // "Open" first
+            return (isStart < i.isStart);
+        }
+        return (x < i.x);
+    }
 };
 
 using SlEvents = QList<ScanlineEvent>;

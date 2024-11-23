@@ -7,8 +7,11 @@ SlEvents calRectsToSlEvents(Container<T>& container) {
     SlEvents result;
 
     for (int i = 0; i < container.size(); i++) {
-        result.append({container[i].start, true, i});
-        result.append({container[i].start + container[i].duration, false, i});
+        float start = container[i].start;
+        float end = start + container[i].duration;
+        float len = container[i].duration;
+        result.append({start, true, i, len});
+        result.append({end, false, i, len});
     }
 
     std::sort(result.begin(), result.end());
