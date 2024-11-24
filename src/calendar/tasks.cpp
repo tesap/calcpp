@@ -10,13 +10,15 @@ bool CalendarRect::isOverlap(const CalendarRect& b) {
     return !(start + duration <= b.start || b.start + b.duration <= start);
 }
 
-void CalendarRect::draw(QPainter& painter) {
+void CalendarRect::draw(QPainter& painter, QPoint& offset) {
     painter.setBrush(m_bgColor);
-    painter.setPen(Qt::black);
-    painter.drawRect(m_rect);
 
+    QRect absRect = m_rect.translated(offset);
+
+    painter.setPen(Qt::black);
+    painter.drawRect(absRect);
     painter.setPen(Qt::white);
-    painter.drawText(m_rect, Qt::AlignCenter, m_name);
+    painter.drawText(absRect, Qt::AlignCenter, m_name);
 }
 
 QRect CalendarRect::getRect() const {

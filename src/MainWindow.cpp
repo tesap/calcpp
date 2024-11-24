@@ -14,12 +14,12 @@ MainWindow::MainWindow(QWidget* parent)
     , ui(new Ui::MainWindow) {
     ui->setupUi(this);
 
-    treeView = qobject_cast<TreeViewWidget*>(ui->treeView);
+    // treeView = qobject_cast<TreeViewWidget*>(ui->treeView);
     calendarView = qobject_cast<CalendarView*>(ui->calendarView);
 }
 
 void MainWindow::on_pushButton_clicked() {
-    calendarView->addTask({10, 1, "ABC"});
+    calendarView->addTask({10, 1, "ABC"}, 0);
 }
 
 MainWindow::~MainWindow() {

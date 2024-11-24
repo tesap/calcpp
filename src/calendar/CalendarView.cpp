@@ -1,5 +1,4 @@
 #include "CalendarView.h"
-#include "utils/algorithms.h"
 
 #include <QMenu>
 #include <QMouseEvent>
@@ -34,73 +33,67 @@ void drawDashedLine(QPainter& painter, const QColor& color, const QLine& line) {
 
 CalendarView::CalendarView(QWidget* parent)
     : QWidget(parent)
+    , m_daysCnt(3)
     , m_bgColor(WHITE)
     , m_startHour(5)
     , m_endHour(23)
+    , m_dayWidth(350)
     , m_hourHeight(50)
     , m_hourXPadding(5)
     , m_hourYPadding(0)
-    , m_eventWidth(350)
-    , m_eventLeftPadding(50)
-    , m_eventRightPadding(50)
-    , m_calendarWidth(m_eventWidth + m_eventLeftPadding + m_eventRightPadding)
-    , m_calendarHeight(m_hourHeight * (m_endHour - m_startHour) + 25)
-    , minDeltaSegmentSize(0.5)
-    , m_edgeEventMargin(12) {
+    , m_leftPadding(50)
+    , m_rightPadding(50)
+    , m_bottomPadding(25)
+    , m_calendarWidth(m_dayWidth * m_daysCnt + m_leftPadding + m_rightPadding)
+    , m_calendarHeight(m_hourHeight * (m_endHour - m_startHour) + m_bottomPadding)
+    // , m_hourHeight(50)
+
+    // , m_eventLeftPadding(50)
+    // , m_eventRightPadding(50)
+    // , m_edgeEventMargin(12)
+{
     setMinimumSize(m_calendarWidth, m_calendarHeight);
     setMouseTracking(true);
 
-    addTask({10, 2.5, "QStr"});
+    initDaysViews(m_daysCnt);
+
+    addTask({10, 2.5, "QStr"}, 0);
+    addTask({10, 2.5, "QStr"}, 1);
+    addTask({10, 2.5, "QStr"}, 2);
+    // addTask({10, 2.5, "QStr"}, 3);
+    // addTask({10, 2.5, "QStr"}, 4);
 }
 
-void CalendarView::updateTasksRects() {
-    // 1. Scanline
-    // 2. Iterate over result, update each m_rect
-    // 3. update()
+// // TODO update on this level or at SingleDayCalendar? (Or both?)
+// void CalendarView::updateDraggingTaskRect() {
+//     // Update task's rect indefferently to other tasks, as it
+//     // is being in process of dragging
 
-    auto slInput = Algorithms::calRectsToSlEvents(m_tasks);
-    auto slResult = Algorithms::scanlineAlgo(slInput);
+//     update();
+// }
 
-    for (int i = 0; i < slResult.size(); i++) {
-        // for (int i = 0; i < chunk.size(); i++) {
-        //     auto taskIndex = chunk[i];
-        //     auto chunkSize = chunk.size();
-        //     Task& t = m_tasks[taskIndex];
-        //     t.setRect(calcDrawRect(t, i, chunkSize));
-        // }
-        auto chunk = slResult[i];
-        auto taskPos = chunk[0];
-        auto taskWidth = chunk[1];
-        auto chunkSize = chunk[2];
+bool CalendarView::addTask(Task t, int dayInd) {
+    SingleDayCalendar& day = m_days[dayInd];
+    auto result = day.addTask(t);
+    updateDay(dayInd);
 
-        Task& t = m_tasks[i];
-        t.setRect(calcDrawRect(t, taskPos, taskWidth, chunkSize));
+    return result;
+}
+
+void CalendarView::initDaysViews(int daysCnt)
+{
+    m_days.clear();
+    for (int i = 0; i < daysCnt; i++) {
+        // clang-format on
+        SingleDayCalendar day{
+            m_startHour,
+            m_endHour,
+            m_hourHeight,
+            m_dayWidth
+        };
+        // clang-format off
+        m_days.append(day);
     }
-
-    update(); // Repainting full widget
-}
-
-void CalendarView::updateDraggingTaskRect() {
-    // Update task's rect indefferently to other tasks, as it
-    // is being in process of dragging
-    m_draggedRect->setRect(calcDrawRect(*m_draggedRect, 0, 1, 1));
-    update();
-}
-
-bool CalendarView::addTask(Task t) {
-    if (!taskDrawable(t.start, t.duration)) {
-        qDebug() << "Error: To be added task is not drawable";
-        return false;
-    }
-
-    m_tasks.append(t);
-
-    updateTasksRects();
-    return true;
-}
-
-void CalendarView::clearTasks() {
-    m_tasks.clear();
     update();
 }
 
@@ -118,61 +111,86 @@ void CalendarView::paintEvent(QPaintEvent* event) {
         drawTextBelow(painter, text, BLACK, {m_hourXPadding, y + m_hourYPadding});
     }
 
-    for (Task& t : m_tasks) {
-        t.draw(painter);
+    for (int i = 0; i < m_daysCnt; i++) {
+        auto& day = m_days[i];
+        QRect dayRect = getDayRect(i);
+        // if (event->rect().intersects(dayRect)) {
+            // TODO Redraw partially
+            QPoint offset = dayRect.topLeft();
+            day.draw(painter, offset);
+        // }
     }
 
     // Dragging rect is to be drawn at top
     if (m_draggedRect) {
-        m_draggedRect->draw(painter);
+        QPoint offset = getDayRect(m_draggedDay).topLeft();
+        m_draggedRect->draw(painter, offset);
     }
 }
 
 void CalendarView::mousePressEvent(QMouseEvent* event) {
-    m_dragMode = None;
+    m_dragMode = DragMode::None;
     m_draggedRect = nullptr;
+
+    QPoint globalPos = event->pos();
+    int dayIndex = getDayIndexBy(globalPos);
+    SingleDayCalendar& day = m_days[dayIndex];
+    QPoint relativePos = globalPos - getDayRect(dayIndex).topLeft();
+    CoverData cd = day.coverDataAt(relativePos);
 
     switch (event->button()) {
     case (Qt::RightButton): {
+        // Add context menu in corresponding day
         QMenu menu(this);
 
-        bool clickedRect = std::any_of(m_tasks.begin(), m_tasks.end(), [&event, &menu, this](const Task& t) {
-            if (isIntersectBody(t, event->pos())) {
-                menu.addAction("Edit Task", []() {});   // editTask(t); });
-                menu.addAction("Delete Task", []() {}); //  { deleteTask(t); });
-                return true;
-            }
-            return false;
-        });
-
-        if (!clickedRect) {
-            menu.addAction("Add Task", [this, &event]() {
-                float startHour = m_startHour + static_cast<float>(event->pos().y()) / m_hourHeight;
-                Task newTask{startHour, 1.0, "New Task"};
-                addTask(newTask);
+        switch (cd.type) {
+        case (TaskBorder):
+        case (TaskRect): {
+            menu.addAction("Edit Task", []() {});   // editTask(t); });
+            menu.addAction("Delete Task", []() {}); //  { deleteTask(t); });
+            break;
+        }
+        case (ZoneRect): {}
+        case (CoverType::None):
+        default: {
+            menu.addAction("Add Task", [this, &globalPos, &dayIndex]() {
+                float startHour = m_startHour + static_cast<float>(globalPos.y()) / m_hourHeight;
+                Task newTask{startHour, 1.0, "New Task"}; // Default task
+                addTask(newTask, dayIndex);
             });
+        }
         }
 
         menu.exec(event->globalPos());
         break;
     }
     case (Qt::LeftButton): {
-        std::any_of(m_tasks.begin(), m_tasks.end(), [this, event](Task& t) {
-            if (isIntersectBorder(t, event->pos())) {
-                m_dragMode = ResizeBottom;
-                m_draggedRect = &t;
-                m_lastMousePos = event->pos();
-                qDebug() << "Started resizing:" << t.name();
-                return true;
-            } else if (isIntersectBody(t, event->pos())) {
-                m_dragMode = Move;
-                m_draggedRect = &t;
-                m_lastMousePos = event->pos();
-                qDebug() << "Started dragging:" << t.name();
-                return true;
-            }
-            return false;
-        });
+        // Start of action with Task in corresponding day
+        // Make Rect full-wide
+        switch (cd.type) {
+        case (TaskBorder):
+            m_dragMode = DragMode::ResizeBottom;
+            m_draggedRect = cd.rect;
+            m_lastMousePos = event->pos();
+            m_draggedDay = dayIndex;
+            // Change rect view
+            day.updateDraggingRect(m_dragMode, *cd.rect, 0);
+            qDebug() << "Started resizing: " << cd.rect->name();
+            break;
+        case (TaskRect): {
+            m_dragMode = DragMode::Move;
+            m_draggedRect = cd.rect;
+            m_lastMousePos = event->pos();
+            m_draggedDay = dayIndex;
+            day.updateDraggingRect(m_dragMode, *cd.rect, 0);
+            qDebug() << "Started dragging:" << cd.rect->name();
+            break;
+        }
+        case (ZoneRect): {}
+        case (CoverType::None):
+        default: {
+        }
+        }
     }
     default: {
     }
@@ -182,52 +200,54 @@ void CalendarView::mousePressEvent(QMouseEvent* event) {
 void CalendarView::mouseMoveEvent(QMouseEvent* event) {
     adjustCursor(event);
 
-    // TODO Some lost delta on fast movement?
-    int deltaY = event->pos().y() - m_lastMousePos.y();
-    int deltaSegments = deltaY / (m_hourHeight * minDeltaSegmentSize);
-    float deltaHours = deltaSegments * minDeltaSegmentSize;
+    // TODO Delta by x (Day1 -> Day2)
+    // Update Task in action : udpate m_rect, Redraw
+    // - Either partial old + new
+    // - Now full day / 2days
 
-    switch (m_dragMode) {
-    case (Move): {
-        float newStartHour = m_draggedRect->start + deltaHours;
-        if (deltaHours != 0 && taskDrawable(newStartHour, m_draggedRect->duration)) {
-            m_draggedRect->start = newStartHour;
+    // QPoint globalPos = event->pos();
+    // int dayIndex = getDayIndexBy(globalPos);
+    // SingleDayCalendar& day = m_days[dayIndex];
+    // QPoint relativePos = globalPos - getDayRect(dayIndex).topLeft();
+    // CoverData cd = day.coverDataAt(relativePos);
+
+
+    if (true) { // Same day
+        // TODO Some lost delta on fast movement?
+        int deltaY = event->pos().y() - m_lastMousePos.y();
+
+        SingleDayCalendar& day = m_days[m_draggedDay];
+        bool moved = day.updateDraggingRect(m_dragMode, *m_draggedRect, deltaY);
+
+        if (moved) {
             m_lastMousePos = event->pos();
-            updateDraggingTaskRect();
+            updateDay(m_draggedDay);
         }
-        break;
+    } else {
+
     }
-    case (ResizeBottom): {
-        float newDuration = m_draggedRect->duration + deltaHours;
-        // clang-format off
-        if (deltaHours != 0
-            && newDuration >= minDeltaSegmentSize
-            && taskDrawable(m_draggedRect->start, newDuration)
-        ) {
-            // clang-format on
-            m_draggedRect->duration = newDuration;
-            m_lastMousePos = event->pos();
-            updateDraggingTaskRect();
-        }
-        break;
-    }
-    default: {
-    }
-    };
 }
 
 void CalendarView::mouseReleaseEvent(QMouseEvent* event) {
     // Adjust tasks
-    // TODO Adjust partially (needed?)
-    // TODO cast works?
-    if (dynamic_cast<Task*>(m_draggedRect)) {
-        updateTasksRects();
-    }
+    // TODO Adjust partially, i.e. only affected by move (needed?)
 
-    m_dragMode = None;
+    QPoint globalPos = event->pos();
+    int dayIndex = getDayIndexBy(globalPos);
+    SingleDayCalendar& day = m_days[dayIndex];
+
+    m_dragMode = DragMode::None;
     m_draggedRect = nullptr;
+    m_draggedDay = -1;
 
     adjustCursor(event);
+
+    // Update day rects
+    // day.updateDraggingRect(DragMode::None, *m_draggedRect, 0);
+    day.updateRects();
+
+    // TODO parital
+    update();
 }
 
 QSize CalendarView::sizeHint() const {
@@ -235,66 +255,73 @@ QSize CalendarView::sizeHint() const {
 }
 
 void CalendarView::adjustCursor(QMouseEvent* event) {
-    switch (m_dragMode) {
-    case (Move): {
-        setCursor(Qt::ClosedHandCursor);
-        return;
-    }
-    case (ResizeBottom): {
-        setCursor(Qt::SizeVerCursor);
-        return;
-    }
-    case (None): {
-        // TODO Sort by max startHour
-        auto isCovering = std::any_of(m_tasks.begin(), m_tasks.end(), [this, event](const Task& t) {
-            if (isIntersectBorder(t, event->pos())) {
-                setCursor(Qt::SizeVerCursor);
-                return true;
-            } else if (isIntersectBorder(t, event->pos())) {
-                setCursor(Qt::OpenHandCursor);
-                return true;
-            }
-            return false;
-        });
+    QPoint globalPos = event->pos();
 
-        if (!isCovering) {
+    switch (m_dragMode) {
+    case (DragMode::Move): {
+        setCursor(ACTION_MOVING_CURSOR);
+        return;
+    }
+    case (DragMode::ResizeBottom): {
+        setCursor(ACTION_RESIZING_CURSOR);
+        return;
+    }
+    case (DragMode::None): {
+        int dayIndex = getDayIndexBy(globalPos);
+        SingleDayCalendar& day = m_days[dayIndex];
+        QPoint relativePos = globalPos - getDayRect(dayIndex).topLeft();
+
+        qDebug() << "IND: " << dayIndex;
+        qDebug() << "   TOP_LEFT: " << getDayRect(dayIndex).topLeft();
+        qDebug() << "   REL_POS: " << relativePos;
+
+        CoverData cd = day.coverDataAt(relativePos);
+
+        switch (cd.type) {
+        case (CoverType::TaskBorder): {
+            setCursor(COVER_RESIZABLE_CURSOR);
+            break;
+        }
+        case (CoverType::TaskRect): {
+            setCursor(COVER_MOVABLE_CURSOR);
+            break;
+        }
+        case (CoverType::ZoneRect): {
+            // TODO ?
+            // setCursor(COVER_MOVABLE_CURSOR);
+            // break;
+        }
+        case (CoverType::None):
+        default: {
             setCursor(Qt::ArrowCursor);
+            break;
+        }
         }
         break;
     }
     default: {
-        qDebug() << "Unknown drag state?: " << m_dragMode;
+        qDebug() << "Unknown drag state?: " << (int) m_dragMode;
     }
     }
 }
 
-bool CalendarView::isIntersectBorder(const CalendarRect& cr, const QPoint& pos) const {
-    QRect rect = cr.getRect();
-
-    QRect topEdge = rect.adjusted(0, 0, 0, m_edgeEventMargin - rect.height());
-    QRect bottomEdge = rect.adjusted(0, rect.height() - m_edgeEventMargin / 2, 0, m_edgeEventMargin / 2);
-
-    // return topEdge.contains(pos) || bottomEdge.contains(pos);
-    return bottomEdge.contains(pos);
+void CalendarView::updateDay(int index)
+{
+    QRect rect = getDayRect(index);
+    update(rect);
 }
 
-bool CalendarView::isIntersectBody(const CalendarRect& cr, const QPoint& pos) const {
-    return cr.getRect().contains(pos);
+int CalendarView::getDayIndexBy(const QPoint& globalPos) const {
+    // TODO? return (static_cast<float>(pos.x()) / m_dayWidth);
+    return (globalPos.x() - m_leftPadding) / m_dayWidth;
+    // return m_days[index];
 }
 
-bool CalendarView::taskDrawable(float startHour, float duration) const {
-    return startHour >= m_startHour && (startHour + duration) <= m_endHour;
-}
-
-QRect CalendarView::calcDrawRect(const CalendarRect& cr, int clusterIndex, int widthInCluster, int clusterSize) const {
-    float hourRelative = cr.start - m_startHour;
-
-    int colWidth = m_eventWidth / clusterSize;
-
-    int width = widthInCluster * colWidth;
-    int height = cr.duration * m_hourHeight;
-
-    int x = m_eventLeftPadding + clusterIndex * colWidth;
-    int y = hourRelative * m_hourHeight;
-    return QRect(x, y, width, height);
+QRect CalendarView::getDayRect(int index) const {
+    return {
+        m_leftPadding + m_dayWidth * index,
+        0,
+        m_dayWidth,
+        m_calendarHeight
+    };
 }

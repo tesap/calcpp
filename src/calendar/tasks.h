@@ -22,7 +22,7 @@ public:
 
     virtual bool operator<(const CalendarRect& b) const;
     virtual bool isOverlap(const CalendarRect& b);
-    virtual void draw(QPainter& painter);
+    virtual void draw(QPainter& painter, QPoint& offset);
 
     // Getters & Setters
     virtual QRect getRect() const;
@@ -33,6 +33,10 @@ public:
 
     QString name() const;
     void setName(const QString& newName);
+
+    bool operator==(const CalendarRect& b) const {
+        return this == &b;
+    }
 
 protected:
     int m_id; // Unique in single day
