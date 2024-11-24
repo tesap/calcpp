@@ -8,21 +8,31 @@ SingleDayCalendar::SingleDayCalendar(int startHour, int endHour, int hourHeight,
     , m_hourHeight(hourHeight)
     , m_dayWidth(dayWidth)
     , m_minDeltaSegmentSize(0.5)
-    , m_edgeEventMargin(12)
+    , m_taskLeftPadding(0)
+    , m_taskRightPadding(3)
+    , m_taskResizeAreaHeight(12)
     , m_eventWidth(m_dayWidth)
 {
 
 }
 
-bool SingleDayCalendar::addTask(Task t) {
+Task* SingleDayCalendar::addTask(Task t) {
     if (!isRectDrawable(t.start, t.duration)) {
         qDebug() << "Error: To be added task is not drawable";
-        return false;
+        return nullptr;
     }
 
     m_tasks.append(t);
-    updateRects();
-    return true;
+    return &m_tasks.last();
+}
+
+Task SingleDayCalendar::removeTask(Task &t)
+{
+    ensureOwnership(t);
+
+    Task res = t;
+    m_tasks.removeOne(t);
+    return t;
 }
 
 bool SingleDayCalendar::isRectDrawable(float startHour, float duration) const {
@@ -38,7 +48,7 @@ void SingleDayCalendar::draw(QPainter& painter, QPoint& offset)
 
 // TODO Update for each type (or for general?)
 void SingleDayCalendar::updateRect(CalendarRect& cr, int colPos, int colsWidth, int cols) {
-    // ensureOwnership(cr);
+    ensureOwnership(cr);
 
     QRect newRect = calcDrawRect(cr, colPos, cols);
     cr.setRect(newRect);
@@ -96,8 +106,8 @@ bool SingleDayCalendar::updateDraggingRect(DragMode mode, CalendarRect &cr, int 
 bool SingleDayCalendar::isIntersectBorder(const CalendarRect& cr, const QPoint& pos) const {
     QRect rect = cr.getRect();
 
-    QRect topEdge = rect.adjusted(0, 0, 0, m_edgeEventMargin - rect.height());
-    QRect bottomEdge = rect.adjusted(0, rect.height() - m_edgeEventMargin, 0, 0);
+    QRect topEdge = rect.adjusted(0, 0, 0, m_taskResizeAreaHeight - rect.height());
+    QRect bottomEdge = rect.adjusted(0, rect.height() - m_taskResizeAreaHeight, 0, 0);
 
     // return topEdge.contains(pos) || bottomEdge.contains(pos);
     return bottomEdge.contains(pos);
@@ -170,13 +180,12 @@ void SingleDayCalendar::ensureOwnership(CalendarRect &cr) const
 QRect SingleDayCalendar::calcDrawRect(const CalendarRect& cr, int clusterIndex, int widthInCluster, int clusterSize) const {
         float hourRelative = cr.start - m_startHour;
 
-
-        int colWidth = m_eventWidth / clusterSize;
+        float colWidth = (m_eventWidth - m_taskLeftPadding - m_taskRightPadding) / clusterSize;
 
         int width = widthInCluster * colWidth;
         int height = cr.duration * m_hourHeight;
 
-        int x = clusterIndex * colWidth;
+        int x = clusterIndex * colWidth + m_taskLeftPadding;
         int y = hourRelative * m_hourHeight;
         return QRect(x, y, width, height);
     }

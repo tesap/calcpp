@@ -15,7 +15,8 @@ class SingleDayCalendar {
 public:
     SingleDayCalendar(int startHour, int endHour, int hourHeight, int dayWidth);
 
-    bool addTask(Task t);
+    Task* addTask(Task t);
+    Task removeTask(Task& t);
     CoverData coverDataAt(const QPoint& pos);
     void draw(QPainter& painter, QPoint& offset);
     void updateRects();
@@ -45,7 +46,9 @@ private:
     int m_dayWidth;
 
     float m_minDeltaSegmentSize;
-    int m_edgeEventMargin;
+    int m_taskResizeAreaHeight;
+    int m_taskLeftPadding;
+    int m_taskRightPadding;
 
     // View consts
     int m_eventWidth;
