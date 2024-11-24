@@ -72,10 +72,18 @@ CalendarView::CalendarView(QWidget* parent)
 //     update();
 // }
 
-bool CalendarView::addTask(Task t, int dayInd) {
+Task* CalendarView::addTask(Task t, int dayInd, bool updateRects, bool redraw) {
     SingleDayCalendar& day = m_days[dayInd];
     auto result = day.addTask(t);
-    updateDay(dayInd);
+
+    if (updateRects) {
+        qDebug() << "Update rects day: " << dayInd;
+        day.updateRects();
+    }
+
+    if (redraw) {
+        redrawDay(dayInd);
+    }
 
     return result;
 }
@@ -109,6 +117,11 @@ void CalendarView::paintEvent(QPaintEvent* event) {
         int curHour = i + m_startHour;
         QString text = QString("%1:00").arg(curHour, 2, 10, QChar('0'));
         drawTextBelow(painter, text, BLACK, {m_hourXPadding, y + m_hourYPadding});
+    }
+
+    for (int i = 0; i < m_daysCnt; i++) {
+        int x = m_leftPadding + i * m_dayWidth;
+        drawDashedLine(painter, LIGHT_GRAY, {x, 0, x, m_calendarHeight});
     }
 
     for (int i = 0; i < m_daysCnt; i++) {
@@ -171,7 +184,8 @@ void CalendarView::mousePressEvent(QMouseEvent* event) {
         case (TaskBorder):
             m_dragMode = DragMode::ResizeBottom;
             m_draggedRect = cd.rect;
-            m_lastMousePos = event->pos();
+            m_lastMouseX = event->pos().x();
+            m_lastMouseY = event->pos().y();
             m_draggedDay = dayIndex;
             // Change rect view
             day.updateDraggingRect(m_dragMode, *cd.rect, 0);
@@ -180,7 +194,8 @@ void CalendarView::mousePressEvent(QMouseEvent* event) {
         case (TaskRect): {
             m_dragMode = DragMode::Move;
             m_draggedRect = cd.rect;
-            m_lastMousePos = event->pos();
+            m_lastMouseX = event->pos().x();
+            m_lastMouseY = event->pos().y();
             m_draggedDay = dayIndex;
             day.updateDraggingRect(m_dragMode, *cd.rect, 0);
             qDebug() << "Started dragging:" << cd.rect->name();
@@ -211,20 +226,47 @@ void CalendarView::mouseMoveEvent(QMouseEvent* event) {
     // QPoint relativePos = globalPos - getDayRect(dayIndex).topLeft();
     // CoverData cd = day.coverDataAt(relativePos);
 
+    int deltaX = event->pos().x() - m_lastMouseX;
+    int deltaDays = deltaX / m_dayWidth;
 
-    if (true) { // Same day
+    int oldDayIndex = m_draggedDay;
+    int newDayIndex = m_draggedDay + deltaDays;
+
+    if (deltaDays != 0
+        && m_dragMode == DragMode::Move
+        && newDayIndex >= 0
+        && newDayIndex < m_daysCnt
+    ) {
+        SingleDayCalendar& oldDay = m_days[oldDayIndex];
+        SingleDayCalendar& newDay = m_days[newDayIndex];
+        if (Task* t = dynamic_cast<Task*>(m_draggedRect)) {
+            Task oldDayTask = oldDay.removeTask(*t);
+
+            m_draggedDay = newDayIndex;
+            SingleDayCalendar& newDay = m_days[m_draggedDay];
+            Task* newDayTask = addTask(oldDayTask, newDayIndex, false, false);
+
+            m_draggedRect = newDayTask;
+            redrawDay(oldDayIndex);
+
+            newDay.updateDraggingRect(m_dragMode, *m_draggedRect, 0);
+            redrawDay(newDayIndex);
+
+            m_lastMouseX = event->pos().x();
+        }
+    } else {
         // TODO Some lost delta on fast movement?
-        int deltaY = event->pos().y() - m_lastMousePos.y();
+        int deltaY = event->pos().y() - m_lastMouseY;
 
+        // TODO what if not dragging?
         SingleDayCalendar& day = m_days[m_draggedDay];
+
         bool moved = day.updateDraggingRect(m_dragMode, *m_draggedRect, deltaY);
 
         if (moved) {
-            m_lastMousePos = event->pos();
-            updateDay(m_draggedDay);
+            m_lastMouseY = event->pos().y();
+            redrawDay(m_draggedDay);
         }
-    } else {
-
     }
 }
 
@@ -233,7 +275,7 @@ void CalendarView::mouseReleaseEvent(QMouseEvent* event) {
     // TODO Adjust partially, i.e. only affected by move (needed?)
 
     QPoint globalPos = event->pos();
-    int dayIndex = getDayIndexBy(globalPos);
+    int dayIndex = m_draggedDay;
     SingleDayCalendar& day = m_days[dayIndex];
 
     m_dragMode = DragMode::None;
@@ -271,10 +313,6 @@ void CalendarView::adjustCursor(QMouseEvent* event) {
         SingleDayCalendar& day = m_days[dayIndex];
         QPoint relativePos = globalPos - getDayRect(dayIndex).topLeft();
 
-        qDebug() << "IND: " << dayIndex;
-        qDebug() << "   TOP_LEFT: " << getDayRect(dayIndex).topLeft();
-        qDebug() << "   REL_POS: " << relativePos;
-
         CoverData cd = day.coverDataAt(relativePos);
 
         switch (cd.type) {
@@ -305,8 +343,9 @@ void CalendarView::adjustCursor(QMouseEvent* event) {
     }
 }
 
-void CalendarView::updateDay(int index)
+void CalendarView::redrawDay(int index)
 {
+    qDebug() << "Redraw day: " << index;
     QRect rect = getDayRect(index);
     update(rect);
 }

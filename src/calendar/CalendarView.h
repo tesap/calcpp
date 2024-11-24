@@ -21,7 +21,7 @@ class CalendarView : public QWidget {
 
 public:
     explicit CalendarView(QWidget* parent = nullptr);
-    bool addTask(Task t, int day);
+    Task* addTask(Task t, int day, bool updateRects = true, bool redraw = true);
     void initDaysViews(int daysCnt);
     // bool addZone(Task task);
 
@@ -35,12 +35,14 @@ protected:
 private:
     void adjustCursor(QMouseEvent* event);
     // SingleDayCalendar &getDayBy(const QPoint &pos);
-    void updateDay(int index);
+    void redrawDay(int index);
 
     int getDayIndexBy(const QPoint& globalPos) const;
     QRect getDayRect(int index) const;
 
-    QPoint m_lastMousePos;
+    // QPoint m_lastMousePos;
+    float m_lastMouseX;
+    float m_lastMouseY;
 
     DragMode m_dragMode{DragMode::None};
     CalendarRect* m_draggedRect{nullptr};
