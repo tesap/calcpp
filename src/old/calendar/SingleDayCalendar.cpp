@@ -1,5 +1,5 @@
 #include "SingleDayCalendar.h"
-#include "calendar/CalendarView.h"
+#include "old/calendar/CalendarView.h"
 #include "utils/algorithms.h"
 
 SingleDayCalendar::SingleDayCalendar(int startHour, int endHour, int hourHeight, int dayWidth) // , int edgeEventMargin)
@@ -8,8 +8,8 @@ SingleDayCalendar::SingleDayCalendar(int startHour, int endHour, int hourHeight,
     , m_hourHeight(hourHeight)
     , m_dayWidth(dayWidth)
     , m_minDeltaSegmentSize(0.5)
-    , m_taskLeftPadding(0)
-    , m_taskRightPadding(3)
+    , m_taskLeftPadding(1)
+    , m_taskRightPadding(0)
     , m_taskResizeAreaHeight(12)
     , m_eventWidth(m_dayWidth)
 {

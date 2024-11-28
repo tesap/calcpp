@@ -1,0 +1,3 @@
+Getting Started				How to familiarize yourself with Qt Widgets Designer
+    Launching Designer			Running the Qt Widgets Designer application
+    The User Interface			How to interact with Qt Widgets Designer

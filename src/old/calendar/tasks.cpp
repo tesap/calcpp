@@ -16,7 +16,8 @@ void CalendarRect::draw(QPainter& painter, QPoint& offset) {
     QRect absRect = m_rect.translated(offset);
 
     painter.setPen(Qt::black);
-    painter.drawRect(absRect);
+    painter.setRenderHint(QPainter::Antialiasing);
+    painter.drawRoundedRect(absRect, 8, 8);
     painter.setPen(Qt::white);
     painter.drawText(absRect, Qt::AlignCenter, m_name);
 }

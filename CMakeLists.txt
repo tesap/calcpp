@@ -19,33 +19,18 @@ set(PROJECT_SOURCES
         src/MainWindow.h
         src/MainWindow.cpp
         src/MainWindow.ui
-        src/views/TreeView.h
-        src/views/TreeView.cpp
-        src/utils/algorithms.h
-        src/utils/algorithms.cpp
-        src/utils/algorithms.tpp
-        src/calendar/CalendarView.h
-        src/calendar/CalendarView.cpp
-        src/calendar/tasks.h
-        src/calendar/tasks.cpp
+        # qt-ex/treeitem.cpp
+        # qt-ex/treeitem.h
+        # qt-ex/treemodel.cpp
+        # qt-ex/treemodel.h
 )
-include_directories(${CMAKE_SOURCE_DIR}/src)
 
-add_executable(algo-tests
-        src/utils/algorithms.h
-        src/utils/algorithms.cpp
-        src/utils/algorithms.tpp
-        src/utils/algorithms-tests.cpp
-        src/calendar/tasks.h
-        src/calendar/tasks.cpp
-)
-target_link_libraries(algo-tests PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+include_directories(${CMAKE_SOURCE_DIR}/src)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(${PROJECT_NAME}
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
-        src/calendar/SingleDayCalendar.h src/calendar/SingleDayCalendar.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET ${PROJECT_NAME} APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -64,6 +49,11 @@ else()
         )
     endif()
 endif()
+
+add_subdirectory(src/tree)
+add_subdirectory(src/utils)
+add_subdirectory(src/old/calendar)
+add_subdirectory(sp)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 

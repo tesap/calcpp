@@ -33,7 +33,7 @@ void drawDashedLine(QPainter& painter, const QColor& color, const QLine& line) {
 
 CalendarView::CalendarView(QWidget* parent)
     : QWidget(parent)
-    , m_daysCnt(3)
+    , m_daysCnt(1)
     , m_bgColor(WHITE)
     , m_startHour(5)
     , m_endHour(23)
@@ -57,9 +57,9 @@ CalendarView::CalendarView(QWidget* parent)
 
     initDaysViews(m_daysCnt);
 
-    addTask({10, 2.5, "QStr"}, 0);
-    addTask({10, 2.5, "QStr"}, 1);
-    addTask({10, 2.5, "QStr"}, 2);
+    // addTask({10, 2.5, "QStr"}, 0);
+    // addTask({10, 2.5, "QStr"}, 1);
+    // addTask({10, 2.5, "QStr"}, 2);
     // addTask({10, 2.5, "QStr"}, 3);
     // addTask({10, 2.5, "QStr"}, 4);
 }

@@ -1,0 +1,5 @@
+"settings": {
+  "cmake": {
+    "build_folder": "$folder/build"
+  }
+}
