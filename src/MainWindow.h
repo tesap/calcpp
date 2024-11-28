@@ -3,13 +3,12 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QTreeView>
 
 namespace Ui {
 class MainWindow;
 }
 
-class TreeViewWidget;
-// class ListViewWidget;
 class CalendarView;
 
 class MainWindow : public QMainWindow {
@@ -25,9 +24,7 @@ private slots:
 private:
     Ui::MainWindow* ui;
 
-    TreeViewWidget* treeView;
-    // ListViewWidget *listView;
-    CalendarView* calendarView;
+    QTreeView* treeView;
 };
 
 #endif // MAINWINDOW_H

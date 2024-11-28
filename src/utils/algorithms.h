@@ -1,7 +1,7 @@
 #ifndef ALGORITHMS_H
 #define ALGORITHMS_H
 
-#include "calendar/tasks.h"
+#include "old/calendar/tasks.h"
 
 #include <QDebug>
 
