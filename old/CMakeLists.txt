@@ -15,17 +15,18 @@ find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
 set(PROJECT_SOURCES
-        src/main.cpp
-        src/MainWindow.h
-        src/MainWindow.cpp
-        src/MainWindow.ui
+        main.cpp
+        MainWindow.h
+        MainWindow.cpp
+        MainWindow.ui
         # qt-ex/treeitem.cpp
         # qt-ex/treeitem.h
         # qt-ex/treemodel.cpp
         # qt-ex/treemodel.h
 )
 
-include_directories(${CMAKE_SOURCE_DIR}/src)
+# TODO Something different?
+# include_directories(${CMAKE_SOURCE_DIR}/src)
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(${PROJECT_NAME}
@@ -50,10 +51,9 @@ else()
     endif()
 endif()
 
-add_subdirectory(src/tree)
-add_subdirectory(src/utils)
-add_subdirectory(src/old/calendar)
-add_subdirectory(sp)
+add_subdirectory(tree)
+add_subdirectory(utils)
+add_subdirectory(calendar)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 
