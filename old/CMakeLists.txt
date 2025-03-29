@@ -14,19 +14,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
-set(PROJECT_SOURCES
-        main.cpp
-        MainWindow.h
-        MainWindow.cpp
-        MainWindow.ui
-        # qt-ex/treeitem.cpp
-        # qt-ex/treeitem.h
-        # qt-ex/treemodel.cpp
-        # qt-ex/treemodel.h
-)
-
-# TODO Something different?
-# include_directories(${CMAKE_SOURCE_DIR}/src)
+# set(PROJECT_SOURCES
+#         main.cpp
+#         MainWindow.h
+#         MainWindow.cpp
+#         MainWindow.ui
+# )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(${PROJECT_NAME}
